@@ -1,3 +1,5 @@
+import { Request } from 'itty-router';
+
 type ClientOptions = {
   clientId: string;
   clientSecret: string;
@@ -8,7 +10,12 @@ type ClientOptions = {
   };
 };
 
-export default class OAuth2Client {
+export function getRedirectUri(req: Request, provider: string): string {
+  const reqUrl = new URL(req.url);
+  return `${reqUrl.protocol}//${reqUrl.host}/oauth/${provider}/callback`;
+}
+
+export class OAuth2Client {
   options: ClientOptions;
 
   constructor(options: ClientOptions) {

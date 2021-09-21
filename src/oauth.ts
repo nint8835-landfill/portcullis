@@ -1,4 +1,4 @@
-import OAuth2Client from './utils/oauth';
+import { getRedirectUri, OAuth2Client } from './utils/oauth';
 import { Request } from 'itty-router';
 import { Routes } from 'discord-api-types/v9';
 
@@ -15,10 +15,7 @@ const DISCORD_CLIENT = new OAuth2Client({
 const DISCORD_BASE_URL = 'https://discord.com/api/v9/';
 
 export async function beginDiscordOauth(req: Request): Promise<Response> {
-  const reqUrl = new URL(req.url);
-  return DISCORD_CLIENT.redirect(
-    `${reqUrl.protocol}//${reqUrl.host}/oauth/discord/callback`,
-  );
+  return DISCORD_CLIENT.redirect(getRedirectUri(req, 'discord'));
 }
 
 export async function handleDiscordCallback(req: Request): Promise<Response> {
@@ -28,11 +25,9 @@ export async function handleDiscordCallback(req: Request): Promise<Response> {
     return new Response('Missing query params', { status: 400 });
   }
 
-  const reqUrl = new URL(req.url);
-
   const token = await DISCORD_CLIENT.getToken(
     code,
-    `${reqUrl.protocol}//${reqUrl.host}/oauth/discord/callback`,
+    getRedirectUri(req, 'discord'),
   );
 
   const userData = await fetch(DISCORD_BASE_URL + Routes.user(), {
