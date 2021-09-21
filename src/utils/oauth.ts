@@ -26,4 +26,30 @@ export default class OAuth2Client {
 
     return Response.redirect(url.href, 307);
   }
+
+  async getToken(
+    code: string,
+    redirectUri: string | null = null,
+  ): Promise<string> {
+    const tokenData = new FormData();
+
+    tokenData.append('grant_type', 'authorization_code');
+    tokenData.append('code', code);
+    tokenData.append('client_id', this.options.clientId);
+    tokenData.append('client_secret', this.options.clientSecret);
+    if (redirectUri !== null) {
+      tokenData.append('redirect_uri', redirectUri);
+    }
+
+    const resp = await fetch(this.options.endpoints.token, {
+      method: 'POST',
+      body: tokenData,
+      headers: {
+        'User-Agent':
+          'Portcullis/1.0.0 (https://github.com/nint8835/portcullis)',
+      },
+    });
+
+    return (await resp.json()).access_token;
+  }
 }
