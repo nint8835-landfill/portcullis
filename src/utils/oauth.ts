@@ -54,6 +54,7 @@ export class OAuth2Client {
       headers: {
         'User-Agent':
           'Portcullis/1.0.0 (https://github.com/nint8835/portcullis)',
+        Accept: 'application/json',
       },
     });
 
