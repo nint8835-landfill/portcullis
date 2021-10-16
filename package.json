@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
-    "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'"
+    "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "dev": "miniflare --watch"
   },
   "license": "MIT",
   "eslintConfig": {
@@ -23,6 +24,7 @@
     "eslint": "^7.21.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-config-typescript": "^3.0.0",
+    "miniflare": "^1.4.1",
     "prettier": "^2.3.0",
     "ts-jest": "^27.0.1",
     "ts-loader": "^9.2.2",
