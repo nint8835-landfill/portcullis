@@ -6,4 +6,6 @@ transpiled
 
 wrangler.toml
 
+# Miniflare config & data
 .env
+.mf

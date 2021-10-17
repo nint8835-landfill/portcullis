@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/rest';
-import { Routes } from 'discord-api-types/v9';
+import { Routes, APIUser } from 'discord-api-types/v9';
 import { Request } from 'itty-router';
+import { IdentityProvider, User } from './data/users';
 import { getRedirectUri, OAuth2Client } from './utils/oauth';
 
 const DISCORD_CLIENT = new OAuth2Client({
@@ -48,7 +49,37 @@ export async function handleDiscordCallback(req: Request): Promise<Response> {
     },
   });
 
-  return new Response(JSON.stringify(await userData.json()), {
+  const userDataJson: APIUser = await userData.json();
+
+  let userInstance = await User.get(userDataJson.id);
+  if (userInstance === null) {
+    userInstance = new User({
+      id: userDataJson.id,
+      isOnboarding: true,
+      isManaging: false,
+      isJoining: false,
+      identities: [],
+    });
+  }
+  const identityData = userInstance.getIdentityData(
+    IdentityProvider.Discord,
+    userDataJson.id,
+  );
+  if (identityData) {
+    identityData.verifiedAt = new Date();
+    identityData.data = userDataJson;
+  } else {
+    userInstance.identities.push({
+      provider: IdentityProvider.Discord,
+      id: userDataJson.id,
+      verifiedAt: new Date(),
+      data: userDataJson,
+    });
+  }
+
+  await userInstance.save(userInstance.id);
+
+  return new Response(JSON.stringify(userDataJson), {
     headers: { 'Content-Type': 'application/json' },
     status: 200,
   });

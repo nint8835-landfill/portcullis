@@ -7,7 +7,7 @@
     "build": "webpack",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
     "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
-    "dev": "miniflare --watch"
+    "dev": "miniflare --watch --kv PORTCULLIS_DATA --kv-persist"
   },
   "license": "MIT",
   "eslintConfig": {
@@ -35,6 +35,7 @@
   "dependencies": {
     "@octokit/rest": "^18.12.0",
     "discord-api-types": "^0.23.1",
-    "itty-router": "^2.4.2"
+    "itty-router": "^2.4.2",
+    "worktop": "^0.7.3"
   }
 }
