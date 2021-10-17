@@ -19,6 +19,11 @@ export class User extends KVObject {
    */
   id: string;
   /**
+   * Randomly-generated session key.
+   * Can be rotated to invalidate existing sessions.
+   */
+  sessionKey: string;
+  /**
    * Whether or not this user is currently onboarding.
    * Will be set to `true` when the user has not yet completed the onboarding process.
    */
@@ -40,16 +45,23 @@ export class User extends KVObject {
 
   constructor({
     id,
+    sessionKey,
     isOnboarding,
     isManaging,
     isJoining,
     identities,
   }: Pick<
     User,
-    'id' | 'isOnboarding' | 'isManaging' | 'isJoining' | 'identities'
+    | 'id'
+    | 'isOnboarding'
+    | 'isManaging'
+    | 'isJoining'
+    | 'identities'
+    | 'sessionKey'
   >) {
     super();
     this.id = id;
+    this.sessionKey = sessionKey;
     this.isOnboarding = isOnboarding;
     this.isManaging = isManaging;
     this.isJoining = isJoining;

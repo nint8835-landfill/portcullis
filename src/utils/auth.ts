@@ -1,4 +1,7 @@
-import { Request } from 'itty-router';
+import { Request as IttyRequest } from 'itty-router';
+import cookie from 'worktop/cookie';
+import { User } from '../data/users';
+import { decryptData } from './crypto';
 
 type ClientOptions = {
   clientId: string;
@@ -10,7 +13,7 @@ type ClientOptions = {
   };
 };
 
-export function getRedirectUri(req: Request, provider: string): string {
+export function getRedirectUri(req: IttyRequest, provider: string): string {
   const reqUrl = new URL(req.url);
   return `${reqUrl.protocol}//${reqUrl.host}/oauth/${provider}/callback`;
 }
@@ -60,4 +63,27 @@ export class OAuth2Client {
 
     return (await resp.json()).access_token;
   }
+}
+
+/**
+ * Get the current user from the request.
+ */
+export async function getUser(req: IttyRequest): Promise<User | null> {
+  const cfReq = req as Request;
+  const cookieHeader = cfReq.headers.get('Cookie');
+  if (!cookieHeader) {
+    return null;
+  }
+  const cookies = cookie.parse(cookieHeader);
+  if (cookies['session'] === null) {
+    return null;
+  }
+  const session = JSON.parse(
+    await decryptData(cookies['session'], SESSION_SECRET),
+  );
+  const user = await User.get(session.userId);
+  if (user === null || user.sessionKey !== session.sessionKey) {
+    return null;
+  }
+  return user;
 }

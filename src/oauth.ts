@@ -1,8 +1,10 @@
 import { Octokit } from '@octokit/rest';
 import { Routes, APIUser } from 'discord-api-types/v9';
+import cookie from 'worktop/cookie';
 import { Request } from 'itty-router';
 import { IdentityProvider, User } from './data/users';
-import { getRedirectUri, OAuth2Client } from './utils/oauth';
+import { getRedirectUri, getUser, OAuth2Client } from './utils/auth';
+import { encryptData } from './utils/crypto';
 
 const DISCORD_CLIENT = new OAuth2Client({
   clientId: DISCORD_CLIENT_ID,
@@ -55,6 +57,7 @@ export async function handleDiscordCallback(req: Request): Promise<Response> {
   if (userInstance === null) {
     userInstance = new User({
       id: userDataJson.id,
+      sessionKey: crypto.getRandomValues(new Uint8Array(16)).toString(),
       isOnboarding: true,
       isManaging: false,
       isJoining: false,
@@ -79,8 +82,23 @@ export async function handleDiscordCallback(req: Request): Promise<Response> {
 
   await userInstance.save(userInstance.id);
 
+  const cookieValue = JSON.stringify({
+    sessionKey: userInstance.sessionKey,
+    userId: userInstance.id,
+  });
+  const encryptedCookie = await encryptData(cookieValue, SESSION_SECRET);
+
   return new Response(JSON.stringify(userDataJson), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Set-Cookie': cookie.stringify('session', encryptedCookie, {
+        samesite: 'None',
+        secure: true,
+        path: '/',
+        // TODO: Configure cross-domain access, if required
+        // domain: ''
+      }),
+    },
     status: 200,
   });
 }
