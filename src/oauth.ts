@@ -29,7 +29,13 @@ const GITHUB_CLIENT = new OAuth2Client({
 const DISCORD_BASE_URL = 'https://discord.com/api/v9/';
 
 export async function beginDiscordOauth(req: Request): Promise<Response> {
-  return DISCORD_CLIENT.redirect(getRedirectUri(req, 'discord'));
+  if (!req.query || !req.query.returnTo) {
+    return new Response('Missing returnTo query param', { status: 400 });
+  }
+  return DISCORD_CLIENT.redirect(
+    getRedirectUri(req, 'discord'),
+    JSON.stringify({ returnTo: req.query.returnTo }),
+  );
 }
 
 export async function handleDiscordCallback(req: Request): Promise<Response> {
@@ -88,9 +94,9 @@ export async function handleDiscordCallback(req: Request): Promise<Response> {
   });
   const encryptedCookie = await encryptData(cookieValue, SESSION_SECRET);
 
-  return new Response(JSON.stringify(userDataJson), {
+  return new Response(null, {
     headers: {
-      'Content-Type': 'application/json',
+      Location: JSON.parse(state).returnTo,
       'Set-Cookie': cookie.stringify('session', encryptedCookie, {
         samesite: 'None',
         secure: true,
@@ -99,12 +105,18 @@ export async function handleDiscordCallback(req: Request): Promise<Response> {
         // domain: ''
       }),
     },
-    status: 200,
+    status: 307,
   });
 }
 
 export async function beginGithubOauth(req: Request): Promise<Response> {
-  return GITHUB_CLIENT.redirect(getRedirectUri(req, 'github'));
+  if (!req.query || !req.query.returnTo) {
+    return new Response('Missing returnTo query param', { status: 400 });
+  }
+  return GITHUB_CLIENT.redirect(
+    getRedirectUri(req, 'github'),
+    JSON.stringify({ returnTo: req.query.returnTo }),
+  );
 }
 
 export async function handleGithubCallback(req: Request): Promise<Response> {
@@ -126,8 +138,8 @@ export async function handleGithubCallback(req: Request): Promise<Response> {
 
   const user = await octokit.users.getAuthenticated();
 
-  return new Response(JSON.stringify(user.data), {
-    headers: { 'Content-Type': 'application/json' },
-    status: 200,
+  return new Response(null, {
+    headers: { Location: JSON.parse(state).returnTo },
+    status: 307,
   });
 }
